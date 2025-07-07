@@ -1,296 +1,197 @@
-# Context Engineering Template
+# NECTA - Chat Interface for n8n AI Agents
 
-A comprehensive template for getting started with Context Engineering - the discipline of engineering context for AI coding assistants so they have the information necessary to get the job done end to end.
+> **NECTA** (co-NECTA: CONnector + NEctar) is a secure chat interface that bridges users with n8n AI agents via webhook communication.
 
-> **Context Engineering is 10x better than prompt engineering and 100x better than vibe coding.**
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Version](https://img.shields.io/badge/version-0.1.0-green.svg)
+![Status](https://img.shields.io/badge/status-MVP%20Development-orange.svg)
 
-## 🚀 Quick Start
+## Overview
 
-```bash
-# 1. Clone this template
-git clone https://github.com/coleam00/Context-Engineering-Intro.git
-cd Context-Engineering-Intro
+NECTA provides a clean, secure interface for communicating with AI agents running in n8n workflows. It features real-time messaging, secure profile management, and comprehensive analytics integration.
 
-# 2. Set up your project rules (optional - template provided)
-# Edit CLAUDE.md to add your project-specific guidelines
+### Key Features
 
-# 3. Add examples (highly recommended)
-# Place relevant code examples in the examples/ folder
+- **🔐 Secure Profile Management** - Encrypted webhook storage with environment toggles
+- **💬 Real-time Chat Interface** - WebSocket-based messaging with typing indicators
+- **📁 Multi-modal Support** - File uploads for agents that process documents and images
+- **📊 Analytics Integration** - Built-in LangSmith monitoring and performance tracking
+- **🛡️ Security First** - JWT authentication, AES-256 encryption, MFA support
+- **🎨 Modern UI** - n8n-inspired design with dotted canvas background
 
-# 4. Create your initial feature request
-# Edit INITIAL.md with your feature requirements
+## Quick Start
 
-# 5. Generate a comprehensive PRP (Product Requirements Prompt)
-# In Claude Code, run:
-/generate-prp INITIAL.md
+### Prerequisites
 
-# 6. Execute the PRP to implement your feature
-# In Claude Code, run:
-/execute-prp PRPs/your-feature-name.md
-```
+- **Node.js** 18+ and npm
+- **Python** 3.11+
+- **n8n instance** (cloud or self-hosted)
 
-## 📚 Table of Contents
-
-- [What is Context Engineering?](#what-is-context-engineering)
-- [Template Structure](#template-structure)
-- [Step-by-Step Guide](#step-by-step-guide)
-- [Writing Effective INITIAL.md Files](#writing-effective-initialmd-files)
-- [The PRP Workflow](#the-prp-workflow)
-- [Using Examples Effectively](#using-examples-effectively)
-- [Best Practices](#best-practices)
-
-## What is Context Engineering?
-
-Context Engineering represents a paradigm shift from traditional prompt engineering:
-
-### Prompt Engineering vs Context Engineering
-
-**Prompt Engineering:**
-- Focuses on clever wording and specific phrasing
-- Limited to how you phrase a task
-- Like giving someone a sticky note
-
-**Context Engineering:**
-- A complete system for providing comprehensive context
-- Includes documentation, examples, rules, patterns, and validation
-- Like writing a full screenplay with all the details
-
-### Why Context Engineering Matters
-
-1. **Reduces AI Failures**: Most agent failures aren't model failures - they're context failures
-2. **Ensures Consistency**: AI follows your project patterns and conventions
-3. **Enables Complex Features**: AI can handle multi-step implementations with proper context
-4. **Self-Correcting**: Validation loops allow AI to fix its own mistakes
-
-## Template Structure
-
-```
-context-engineering-intro/
-├── .claude/
-│   ├── commands/
-│   │   ├── generate-prp.md    # Generates comprehensive PRPs
-│   │   └── execute-prp.md     # Executes PRPs to implement features
-│   └── settings.local.json    # Claude Code permissions
-├── PRPs/
-│   ├── templates/
-│   │   └── prp_base.md       # Base template for PRPs
-│   └── EXAMPLE_multi_agent_prp.md  # Example of a complete PRP
-├── examples/                  # Your code examples (critical!)
-├── CLAUDE.md                 # Global rules for AI assistant
-├── INITIAL.md               # Template for feature requests
-├── INITIAL_EXAMPLE.md       # Example feature request
-└── README.md                # This file
-```
-
-This template doesn't focus on RAG and tools with context engineering because I have a LOT more in store for that soon. ;)
-
-## Step-by-Step Guide
-
-### 1. Set Up Global Rules (CLAUDE.md)
-
-The `CLAUDE.md` file contains project-wide rules that the AI assistant will follow in every conversation. The template includes:
-
-- **Project awareness**: Reading planning docs, checking tasks
-- **Code structure**: File size limits, module organization
-- **Testing requirements**: Unit test patterns, coverage expectations
-- **Style conventions**: Language preferences, formatting rules
-- **Documentation standards**: Docstring formats, commenting practices
-
-**You can use the provided template as-is or customize it for your project.**
-
-### 2. Create Your Initial Feature Request
-
-Edit `INITIAL.md` to describe what you want to build:
-
-```markdown
-## FEATURE:
-[Describe what you want to build - be specific about functionality and requirements]
-
-## EXAMPLES:
-[List any example files in the examples/ folder and explain how they should be used]
-
-## DOCUMENTATION:
-[Include links to relevant documentation, APIs, or MCP server resources]
-
-## OTHER CONSIDERATIONS:
-[Mention any gotchas, specific requirements, or things AI assistants commonly miss]
-```
-
-**See `INITIAL_EXAMPLE.md` for a complete example.**
-
-### 3. Generate the PRP
-
-PRPs (Product Requirements Prompts) are comprehensive implementation blueprints that include:
-
-- Complete context and documentation
-- Implementation steps with validation
-- Error handling patterns
-- Test requirements
-
-They are similar to PRDs (Product Requirements Documents) but are crafted more specifically to instruct an AI coding assistant.
-
-Run in Claude Code:
-```bash
-/generate-prp INITIAL.md
-```
-
-**Note:** The slash commands are custom commands defined in `.claude/commands/`. You can view their implementation:
-- `.claude/commands/generate-prp.md` - See how it researches and creates PRPs
-- `.claude/commands/execute-prp.md` - See how it implements features from PRPs
-
-The `$ARGUMENTS` variable in these commands receives whatever you pass after the command name (e.g., `INITIAL.md` or `PRPs/your-feature.md`).
-
-This command will:
-1. Read your feature request
-2. Research the codebase for patterns
-3. Search for relevant documentation
-4. Create a comprehensive PRP in `PRPs/your-feature-name.md`
-
-### 4. Execute the PRP
-
-Once generated, execute the PRP to implement your feature:
+### Installation
 
 ```bash
-/execute-prp PRPs/your-feature-name.md
+# Clone the repository
+git clone https://github.com/console-1/necta.git
+cd necta
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration
+
+# Frontend setup
+cd frontend
+npm install
+npm run dev
+
+# Backend setup (in new terminal)
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+
+# Or use Docker
+docker-compose up -d
 ```
 
-The AI coding assistant will:
-1. Read all context from the PRP
-2. Create a detailed implementation plan
-3. Execute each step with validation
-4. Run tests and fix any issues
-5. Ensure all success criteria are met
+### Environment Configuration
 
-## Writing Effective INITIAL.md Files
+Copy `.env.example` to `.env` and configure:
 
-### Key Sections Explained
+```bash
+# Essential configuration
+SECRET_KEY="your-jwt-secret-key"
+ENCRYPTION_KEY="your-encryption-key"
+LANGSMITH_API_KEY="your-langsmith-key"
 
-**FEATURE**: Be specific and comprehensive
-- ❌ "Build a web scraper"
-- ✅ "Build an async web scraper using BeautifulSoup that extracts product data from e-commerce sites, handles rate limiting, and stores results in PostgreSQL"
+# n8n integration
+N8N_BASE_URL="https://your-n8n-instance.com"
 
-**EXAMPLES**: Leverage the examples/ folder
-- Place relevant code patterns in `examples/`
-- Reference specific files and patterns to follow
-- Explain what aspects should be mimicked
-
-**DOCUMENTATION**: Include all relevant resources
-- API documentation URLs
-- Library guides
-- MCP server documentation
-- Database schemas
-
-**OTHER CONSIDERATIONS**: Capture important details
-- Authentication requirements
-- Rate limits or quotas
-- Common pitfalls
-- Performance requirements
-
-## The PRP Workflow
-
-### How /generate-prp Works
-
-The command follows this process:
-
-1. **Research Phase**
-   - Analyzes your codebase for patterns
-   - Searches for similar implementations
-   - Identifies conventions to follow
-
-2. **Documentation Gathering**
-   - Fetches relevant API docs
-   - Includes library documentation
-   - Adds gotchas and quirks
-
-3. **Blueprint Creation**
-   - Creates step-by-step implementation plan
-   - Includes validation gates
-   - Adds test requirements
-
-4. **Quality Check**
-   - Scores confidence level (1-10)
-   - Ensures all context is included
-
-### How /execute-prp Works
-
-1. **Load Context**: Reads the entire PRP
-2. **Plan**: Creates detailed task list using TodoWrite
-3. **Execute**: Implements each component
-4. **Validate**: Runs tests and linting
-5. **Iterate**: Fixes any issues found
-6. **Complete**: Ensures all requirements met
-
-See `PRPs/EXAMPLE_multi_agent_prp.md` for a complete example of what gets generated.
-
-## Using Examples Effectively
-
-The `examples/` folder is **critical** for success. AI coding assistants perform much better when they can see patterns to follow.
-
-### What to Include in Examples
-
-1. **Code Structure Patterns**
-   - How you organize modules
-   - Import conventions
-   - Class/function patterns
-
-2. **Testing Patterns**
-   - Test file structure
-   - Mocking approaches
-   - Assertion styles
-
-3. **Integration Patterns**
-   - API client implementations
-   - Database connections
-   - Authentication flows
-
-4. **CLI Patterns**
-   - Argument parsing
-   - Output formatting
-   - Error handling
-
-### Example Structure
-
-```
-examples/
-├── README.md           # Explains what each example demonstrates
-├── cli.py             # CLI implementation pattern
-├── agent/             # Agent architecture patterns
-│   ├── agent.py      # Agent creation pattern
-│   ├── tools.py      # Tool implementation pattern
-│   └── providers.py  # Multi-provider pattern
-└── tests/            # Testing patterns
-    ├── test_agent.py # Unit test patterns
-    └── conftest.py   # Pytest configuration
+# Database (SQLite for local development)
+DATABASE_URL="sqlite:///./necta.db"
 ```
 
-## Best Practices
+## Architecture
 
-### 1. Be Explicit in INITIAL.md
-- Don't assume the AI knows your preferences
-- Include specific requirements and constraints
-- Reference examples liberally
+### Technology Stack
 
-### 2. Provide Comprehensive Examples
-- More examples = better implementations
-- Show both what to do AND what not to do
-- Include error handling patterns
+- **Frontend**: Next.js 14, React 18, shadcn/ui, Tailwind CSS
+- **Backend**: FastAPI, SQLAlchemy, async/await patterns
+- **Database**: SQLite (local), Supabase (scaling)
+- **Security**: JWT tokens, AES-256 encryption
+- **Real-time**: WebSockets for live messaging
 
-### 3. Use Validation Gates
-- PRPs include test commands that must pass
-- AI will iterate until all validations succeed
-- This ensures working code on first try
+### Project Structure
 
-### 4. Leverage Documentation
-- Include official API docs
-- Add MCP server resources
-- Reference specific documentation sections
+```
+necta/
+├── frontend/           # Next.js application
+│   ├── app/           # App Router pages
+│   ├── components/    # React components
+│   └── lib/          # Utilities
+├── backend/           # FastAPI application
+│   ├── app/          # Main application
+│   │   ├── api/      # API routes
+│   │   ├── models/   # Database models
+│   │   └── services/ # Business logic
+└── examples/         # Code patterns and examples
+```
 
-### 5. Customize CLAUDE.md
-- Add your conventions
-- Include project-specific rules
-- Define coding standards
+## Development
 
-## Resources
+### Development Commands
 
-- [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
-- [Context Engineering Best Practices](https://www.philschmid.de/context-engineering)
+```bash
+# Frontend
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run lint         # Run linting
+npm run test         # Run tests
+
+# Backend
+uvicorn app.main:app --reload  # Start with auto-reload
+pytest tests/                  # Run tests
+ruff check .                   # Lint code
+mypy app/                      # Type checking
+
+# Docker
+docker-compose up -d           # Full development environment
+```
+
+### Code Quality
+
+The project maintains high code quality standards:
+
+- **TypeScript** with strict mode for frontend type safety
+- **Python type hints** with mypy validation
+- **ESLint + Prettier** for consistent code style
+- **Comprehensive testing** with Jest and pytest
+- **Security-focused** development practices
+
+## n8n Integration
+
+NECTA communicates with n8n workflows through secure webhooks:
+
+### Supported Authentication Methods
+
+- **Basic Auth**: Username/password authentication
+- **Header Auth**: Custom header key-value pairs
+- **JWT**: Token-based authentication
+- **None**: No authentication (development only)
+
+### Webhook Features
+
+- **Retry Logic**: Automatic retries with exponential backoff
+- **Error Handling**: Graceful degradation and user-friendly messages
+- **Payload Support**: JSON, Form Data, Raw Body, Binary Data
+- **File Uploads**: Multi-modal agent support up to 16MB
+
+## Security
+
+Security is a core focus of NECTA:
+
+- **🔐 Data Encryption**: AES-256 for sensitive data at rest
+- **🛡️ Authentication**: JWT tokens with httpOnly cookies
+- **🔑 Secret Management**: Secure environment variable handling
+- **📝 Audit Logging**: Comprehensive security event tracking
+- **🌐 CORS Protection**: Proper cross-origin request handling
+
+## Contributing
+
+We welcome contributions! Please see our contributing guidelines:
+
+1. **Fork the repository** and create a feature branch
+2. **Follow code quality standards** (linting, type checking, tests)
+3. **Write tests** for new functionality
+4. **Submit a pull request** with clear description
+
+### Development Guidelines
+
+- Follow existing code patterns and architecture
+- Maintain security-first development practices
+- Write comprehensive tests for new features
+- Update documentation for API changes
+- Use conventional commits for clear history
+
+## Examples
+
+Check the `examples/` directory for:
+
+- **Workflow Templates**: n8n workflow configurations
+- **Component Patterns**: React component examples
+- **API Integration**: Webhook communication patterns
+- **Security Examples**: Authentication and encryption implementations
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- **GitHub Issues**: Bug reports and feature requests
+- **Documentation**: Comprehensive guides in repository
+- **Community**: Open source community support
+
+---
+
+**Built for the n8n and AI automation community**
+
+*NECTA enables seamless communication with your n8n AI agents through a secure, modern interface.*

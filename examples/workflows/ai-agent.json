@@ -1,0 +1,847 @@
+{
+    "nodes": [
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $json.body.chatInput }}",
+          "options": {
+            "systemMessage": "=# Airtop Browser Automation Agent\n\nYou are an AI agent that controls web browsers through Airtop tools to automate tasks. Parse user requests and execute appropriate Airtop operations. Only parse data gathered through Airtop. Do not add your trained or other data.\n\n## Core Workflow Pattern\n\n1. **User Request Analysis (THINK NODE)** \n  - **Perform all reasoning and sequential thinking inside the Think Node only.** \n  - **When a request is received, reason about the steps required to fulfill the request in the Think Node.**    \n  - **Before executing any browser actions, return a concise, step-by-step item list of what you intend to do, based on the user's request, and ask the user to confirm. Proceed only after the user confirms this plan.**    \n2. **If NO session is active: Create Session**  \n  **If a session IS already active: Create/Load Window instead**  \n3. **Create/Load Window**  \n4. **Interact/Extract**  \n5. **Terminate Session**\n  \n  - **At the end of each task, ASK the user if you may close the session. Do not terminate the session without explicit user confirmation.**\n\n---\n\n## Session Management\n\n### Create Session\n\n- **Check first**: Only create a session if one does NOT already exist.  \n- If session is already created, skip to **Create/Load Window**.  \n- **Use**: Start all automations.  \n- **Key**: Set `profileName` for persistence, `timeoutMinutes` for long tasks.  \n- **Naming**: When naming the session use letters, numbers and dashes ONLY.\n  \n\n### Save Profile\n\n- **Use**: Preserve login state, cookies, browser data. \n- **When**: After authentication or before termination.\n  \n\n### Terminate Session\n\n- **Use**: Clean up resources when automation complete.  \n- **Required**: End of every workflow.  \n- **At the end of each task, always ASK the user if you may close the session before terminating.**\n  \n- **Do not terminate the session unless the user confirms.**\n  \n---\n\n## Window Operations\n\n### Create Window\n\n- **Use**: Open new browser tab with specific URL.  \n- **Key**: Set `getLiveView: true` for monitoring.\n  \n\n### Load Page\n\n- **Use**: Navigate existing window to new URL.  \n- **When**: Changing pages in same session.\n  \n\n### Screenshot\n\n- **Use**: Capture visual state for verification/debugging. \n- **Key**: Set `outputImageAsBinary: true` for file operations.\n  \n\n### Close Window\n\n- **Use**: Close specific tabs while keeping session active.  \n- **Best Practice**: Once you have finished using a window, close it immediately. **Do not leave multiple windows open unnecessarily. Always close each window after its task is complete before moving on.**\n\n## Data Extraction\n\n### Smart Scrape\n\n* **Use**: Extract all visible structured data automatically.\n* **When**: Need comprehensive page data without specific queries.\n\n### Query Page\n\n* **Use**: Ask natural language questions about page content.\n* **When**: Need specific information or answers from current page.\n\n### Query with Pagination\n\n* **Use**: Extract data across multiple pages automatically.\n* **When**: User needs data from paginated lists/tables.\n\n## Web Interactions\n\n### Click Element\n\n* **Use**: Click buttons, links, menu items.\n* **Key**: Describe element clearly (\"submit button\", \"login link\").\n\n### Type\n\n* **Use**: Enter text in input fields.\n* **Key**: Set `pressEnterKey: true` for search boxes.\n* **Target**: Describe input field (\"email field\", \"search box\").\n\n### Fill Form\n\n* **Use**: Complete entire forms with multiple fields.\n* **Key**: Use JSON format `{\"field_name\": \"value\"}`.\n* **When**: Multiple fields need filling simultaneously.\n\n### Hover\n\n* **Use**: Reveal dropdown menus, tooltips, hidden elements.\n* **When**: Elements appear only on hover.\n\n### Scroll\n\n* **Use**: Navigate to specific page sections or elements.\n* **Key**: Use `scrollToElement` for targets, `scrollWithin` for containers.\n\n## File Operations\n\n### Upload File\n\n* **Use**: Send files to web forms.\n* **Key**: Provide `fileName` and `url` or binary data.\n\n### Load File\n\n* **Use**: Load files into specific page elements.\n* **When**: Drag-drop or specific file input targeting needed.\n\n### Get File\n\n* **Use**: Download files from browser/session.\n* **Key**: Set `outputBinaryFile: true` for non-text files.\n\n### Get Many Files\n\n* **Use**: Bulk download from multiple sessions.\n* **When**: Collecting files from batch operations.\n\n### Delete File\n\n* **Use**: Clean up uploaded/temporary files.\n\n## Decision Logic\n\n- **\"Open/visit [URL]\"** → *If no session is active*: Create Session + Create Window. *If session is already active*: Create Window only.  \n- **\"Click [element]\"** → Click Element  \n- **\"Fill out [form]\"** → Fill Form or Type  \n- **\"What does this page say about [topic]?\"** → Query Page  \n- **\"Get all [data] from this site\"** → Smart Scrape or Query with Pagination  \n- **\"Download [file]\"** → Get File  \n- **\"Upload [file]\"** → Upload File  \n- **\"Take a picture\"** → Screenshot  \n- **\"Save this session\"** → Save Profile\n\n## Parameter Guidelines\n\n* **Session/Window IDs**: Reference from previous tool outputs\n* **Element descriptions**: Use natural language (\"red submit button\", \"email input field\")\n* **URLs**: Always include protocol (https\\://)\n* **Form data**: JSON format with exact field names\n* **Prompts**: Clear, specific questions for Query operations\n\n## Element Targeting Best Practices\n\n* **Product Links**: \"product image link\", \"link with title containing \\[product name]\"\n* **Sale/Discount Elements**: \"sale badge\", \"discount percentage\", \"onsale element\"\n* **Images**: \"product image\", \"main product photo\", \"hover image\"\n* **Navigation**: \"menu item\", \"dropdown option\", \"breadcrumb link\"\n* **Forms**: \"login form\", \"checkout form\", \"search form in header\"\n* **Buttons**: \"add to cart button\", \"checkout button\", \"submit button in contact form\"\n* **Be Specific**: Use visible text, CSS classes, or surrounding context\n* **Multiple Descriptors**: \"red submit button in checkout form\" vs just \"submit button\"\n* **Context Matters**: \"price in product card\", \"title in search results\", \"image in gallery\"\n\n## Error Handling\n\n* If session invalid: Create new session first\n* \"httpStatus\": 400, \"message\": \"You have reached your active session limit. You are on the Free plan which supports 1 simultaneous session. Terminate any active sessions and try again.\" If met with this error then move to create/load windows or create query\n* If element not found: Try alternative descriptions or scroll to make visible\n* If page not loaded: Use Load Page before interactions\n* If timeout: Increase session timeout or break into smaller steps\n\n## Output Management\n\n- Always capture session/window IDs for subsequent operations\n- Use screenshots for verification of critical steps\n- Save profiles before termination if user needs to resume later\n- At the end of every task, ask the user if you may close the session. Do not terminate without confirmation.\n- Close any browser windows once you are done using them—never leave multiple windows open.\n\n---\n\n**Key update:**\n\n> Always check if a session already exists. If yes, skip session creation and proceed to browser window operations. Only create a new session if none is active.\n"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 2,
+        "position": [
+          -200,
+          -220
+        ],
+        "id": "88b3628e-f44d-44c7-a666-fc36451c1fb3",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "gpt-4.1",
+            "mode": "list",
+            "cachedResultName": "gpt-4.1"
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          -20
+        ],
+        "id": "d4df1311-2701-4d0c-b49a-072b43a7ccf3",
+        "name": "OpenAI Chat Model",
+        "credentials": {
+          "openAiApi": {
+            "id": "vQr1MDRYLMQgDZTJ",
+            "name": "OpenAi account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sessionIdType": "customKey",
+          "sessionKey": "={{ $json.body.chatInput }}",
+          "contextWindowLength": 25
+        },
+        "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+        "typeVersion": 1.3,
+        "position": [
+          -80,
+          -20
+        ],
+        "id": "a86e715a-3009-4649-9f3f-f4cc9312a8ca",
+        "name": "Postgres Chat Memory",
+        "credentials": {
+          "postgres": {
+            "id": "UiU9EqpUjlnvkfz5",
+            "name": "Postgres Superbase n8n-rag"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "profileName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Profile_Name', `unique name for the browser profile to create`, 'string') }}",
+          "saveProfileOnTermination": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Save_Profile', `save the current profile`, 'boolean') }}",
+          "timeoutMinutes": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Idle_Timeout', `number of minutes before session times out due to inactivity`, 'number') }}",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          220,
+          -60
+        ],
+        "id": "4553f8f4-7a08-45e2-bc4b-45a577e7b8de",
+        "name": "Create Session1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "save",
+          "profileName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Profile_Name', `name of the browser profile to save with current state`, 'string') }}"
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          340,
+          -60
+        ],
+        "id": "921945a6-3ab6-40c9-8223-ff59ec6911b6",
+        "name": "Save Profile1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "terminate"
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          460,
+          -60
+        ],
+        "id": "44a58f21-e201-4078-9091-085ee537602f",
+        "name": "Terminate Session1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "extraction",
+          "operation": "query",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `unique identifier for the browser window to query`, 'string') }}",
+          "prompt": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt', `natural language question to ask about the page content`, 'string') }}",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          220,
+          120
+        ],
+        "id": "b0e61c56-aa3a-4a2a-849c-a09488ef2644",
+        "name": "Query Page1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "extraction",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `unique identifier for the browser window to query`, 'string') }}",
+          "prompt": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt', `natural language query to extract data across multiple pages`, 'string') }}",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          340,
+          120
+        ],
+        "id": "978f22d8-b986-4d87-8482-228c920dc8f8",
+        "name": "Query Page with Pagination in Airtop1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "extraction",
+          "operation": "scrape",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `unique identifier for the browser window to scrape`, 'string') }}"
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          460,
+          120
+        ],
+        "id": "bdc6898f-0403-450e-8215-98f07fefc9a3",
+        "name": "Smart Scrape1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "operation": "get",
+          "fileId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_ID', `unique identifier of the file to retrieve`, 'string') }}",
+          "outputBinaryFile": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Output_Binary_File', `whether to return file as binary data instead of text`, 'boolean') }}"
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          220,
+          320
+        ],
+        "id": "e9d0378c-3c67-4e46-acfd-cce43db5b6b4",
+        "name": "Get File1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', `whether to return all files or limit the results`, 'boolean') }}",
+          "sessionIds": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_IDs', `comma-separated list of session IDs to retrieve files from`, 'string') }}",
+          "outputSingleItem": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Output_Files_in_Single_Item', `whether to combine all files into a single output item`, 'boolean') }}"
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          340,
+          320
+        ],
+        "id": "a903da10-5acf-4bdc-8043-a6587a2172c0",
+        "name": "Get Many Files1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "operation": "load",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `unique identifier for the browser window`, 'string') }}",
+          "fileId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_ID', `unique identifier of the file to load into the page`, 'string') }}",
+          "elementDescription": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Element_Description', `description of the file input element to load the file into`, 'string') }}"
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          480,
+          320
+        ],
+        "id": "2420a642-0944-48d3-821b-c3524351f914",
+        "name": "Load File1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "operation": "upload",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `unique identifier for the browser window`, 'string') }}",
+          "fileName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_Name', `name to give the uploaded file`, 'string') }}",
+          "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', `URL of the file to upload`, 'string') }}",
+          "triggerFileInputParameter": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Trigger_File_Input', `whether to automatically trigger file input dialogs`, 'boolean') }}"
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          620,
+          320
+        ],
+        "id": "6678face-6cc3-463a-8a2a-7db4329ae19a",
+        "name": "Upload File1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "operation": "deleteFile",
+          "fileId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_ID', `unique identifier of the file to delete`, 'string') }}"
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          760,
+          320
+        ],
+        "id": "a5113d47-f47e-4169-8715-54b1e0f39c2d",
+        "name": "Delete File1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "interaction",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `unique identifier for the browser window`, 'string') }}",
+          "elementDescription": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Element_Description', `description of the element to click on the page`, 'string') }}",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          220,
+          520
+        ],
+        "id": "1cf9b3d5-c504-43be-a479-dd76a0f0d411",
+        "name": "Click Element1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "interaction",
+          "operation": "fill",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `unique identifier for the browser window`, 'string') }}",
+          "formData": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Form_Data', `JSON object containing field names and values to fill in the form`, 'string') }}"
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          340,
+          520
+        ],
+        "id": "198c26cc-1bdd-4361-bc77-1a458e710bc5",
+        "name": "Fill Form1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "interaction",
+          "operation": "hover",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `unique identifier for the browser window`, 'string') }}",
+          "elementDescription": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Element_Description', `description of the element to hover over on the page`, 'string') }}",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          480,
+          520
+        ],
+        "id": "2470d018-575b-4d2d-954b-0c4626312070",
+        "name": "Hover1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "interaction",
+          "operation": "scroll",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `unique identifier for the browser window`, 'string') }}",
+          "scrollToElement": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Element_Description', `description of the element to scroll to on the page`, 'string') }}",
+          "scrollWithin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Scrollable_Area', `description of the scrollable container or area to scroll within`, 'string') }}",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          620,
+          520
+        ],
+        "id": "53477aa7-a0cd-46fc-bcf6-02a825d20083",
+        "name": "Scroll1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "interaction",
+          "operation": "type",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `unique identifier for the browser window`, 'string') }}",
+          "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Text', `text content to type into the input field`, 'string') }}",
+          "pressEnterKey": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Press_Enter_Key', `whether to press Enter key after typing text`, 'boolean') }}",
+          "elementDescription": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Element_Description', `description of the input element to type into`, 'string') }}",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          760,
+          520
+        ],
+        "id": "a6160166-4b7f-4bd7-af76-d178d1f8eb4c",
+        "name": "Type1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "window",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', `web address to load in the new browser window`, 'string') }}",
+          "getLiveView": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Get_Live_View', `whether to enable live view streaming for the window`, 'boolean') }}",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          220,
+          720
+        ],
+        "id": "fc888691-5db7-411d-9d12-e2722b0667d0",
+        "name": "Create Window1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "window",
+          "operation": "load",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `unique identifier for the browser window to load page into`, 'string') }}",
+          "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', `web address to navigate to in the existing window`, 'string') }}",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          340,
+          720
+        ],
+        "id": "5bb38e2d-89af-4ef4-9210-7f8ea56387d9",
+        "name": "Load Page1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "window",
+          "operation": "takeScreenshot",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `unique identifier for the browser window to capture`, 'string') }}",
+          "outputImageAsBinary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Output_Binary_Image', `whether to return screenshot as binary image data`, 'boolean') }}"
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          480,
+          720
+        ],
+        "id": "c2abbde2-181f-4fdd-92fd-a72a991de860",
+        "name": "Screenshot1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "window",
+          "operation": "close",
+          "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `unique identifier for the active browser session`, 'string') }}",
+          "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `unique identifier for the browser window to close`, 'string') }}"
+        },
+        "type": "n8n-nodes-base.airtopTool",
+        "typeVersion": 1,
+        "position": [
+          620,
+          720
+        ],
+        "id": "3bdeaf06-ea1c-46ec-8856-3977ec3cc5e7",
+        "name": "Close Window1",
+        "credentials": {
+          "airtopApi": {
+            "id": "Kgd66nnFNxhJ0aHc",
+            "name": "Airtop account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "airtop-n8n",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -540,
+          -220
+        ],
+        "id": "b5cce7d1-cdb8-4d62-b268-3954ee79e33f",
+        "name": "Webhook",
+        "webhookId": "bd9e7f68-f415-427b-a654-343cf07bd1d9"
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.4,
+        "position": [
+          240,
+          -220
+        ],
+        "id": "68f2442b-c2a0-4383-8ad0-1ecae1802259",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {},
+        "type": "@n8n/n8n-nodes-langchain.toolThink",
+        "typeVersion": 1,
+        "position": [
+          20,
+          -20
+        ],
+        "id": "2b6184b8-e53d-4cb2-9a9a-9935925d0b02",
+        "name": "Think"
+      }
+    ],
+    "connections": {
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Postgres Chat Memory": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Session1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save Profile1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Terminate Session1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Query Page1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Query Page with Pagination in Airtop1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Smart Scrape1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get File1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Many Files1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load File1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upload File1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Delete File1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Click Element1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fill Form1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Hover1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Scroll1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Type1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Window1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Page1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Screenshot1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Close Window1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Think": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "pinData": {},
+    "meta": {
+      "templateCredsSetupCompleted": true,
+      "instanceId": "2320299647ff38a49c24afe794c10e466bfa22476f8cfb37fee58fcef8984de6"
+    }
+  }

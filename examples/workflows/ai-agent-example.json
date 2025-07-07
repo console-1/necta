@@ -1,0 +1,163 @@
+{
+  "name": "NECTA AI Agent Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "necta-chat-webhook"
+    },
+    {
+      "parameters": {
+        "content": "=You are an AI assistant integrated with NECTA (the chat interface). \n\nUser Information:\n- User ID: {{ $json.user_id }}\n- Message ID: {{ $json.message_id }}\n- Timestamp: {{ $json.timestamp }}\n\nUser Message:\n{{ $json.content }}\n\n{% if $json.attachments and $json.attachments.length > 0 %}\nAttached Files:\n{% for file in $json.attachments %}\n- {{ file }}\n{% endfor %}\n{% endif %}\n\nPlease provide a helpful response. Format your response in markdown for better readability.",
+        "model": "gpt-4",
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 2000
+        }
+      },
+      "id": "llm-agent",
+      "name": "AI Agent (GPT-4)",
+      "type": "@langchain/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-credentials",
+          "name": "OpenAI GPT-4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdTemplate": "={{ $('Webhook Trigger').first().json.user_id }}",
+        "contextWindowLength": 10
+      },
+      "id": "memory-buffer",
+      "name": "Conversation Memory",
+      "type": "@langchain/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "name": "get_current_time",
+        "description": "Get the current date and time",
+        "schema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "javascriptCode": "return {\n  current_time: new Date().toISOString(),\n  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,\n  timestamp: Date.now()\n};"
+      },
+      "id": "tool-current-time",
+      "name": "Get Current Time Tool",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "success_response",
+              "name": "success_response",
+              "value": "={\n  \"success\": true,\n  \"message_id\": \"{{ $('Webhook Trigger').first().json.message_id }}\",\n  \"agent_response\": \"{{ $('AI Agent (GPT-4)').first().json.response }}\",\n  \"response_format\": \"markdown\",\n  \"processing_time_ms\": {{ Date.now() - new Date($('Webhook Trigger').first().json.timestamp).getTime() }},\n  \"metadata\": {\n    \"model\": \"gpt-4\",\n    \"timestamp\": \"{{ new Date().toISOString() }}\"\n  }\n}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "format-success-response",
+      "name": "Format Success Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseCode": 200,
+        "responseHeaders": {
+          "entries": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
+          ]
+        },
+        "responseBody": "={{ $json.success_response }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent (GPT-4)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent (GPT-4)": {
+      "main": [
+        [
+          {
+            "node": "Format Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Success Response": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "createdAt": "2025-01-06T00:00:00.000Z",
+      "updatedAt": "2025-01-06T00:00:00.000Z",
+      "id": "necta-ai-agent",
+      "name": "NECTA AI Agent"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-06T00:00:00.000Z",
+  "versionId": "1"
+}
