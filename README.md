@@ -1,6 +1,6 @@
 # NECTA - Chat Interface for n8n AI Agents
 
-> **NECTA** (co-NECTA: CONnector + NEctar) is a secure chat interface that bridges users with n8n AI agents via webhook communication.
+> **NECTA** is a secure chat interface that bridges users with n8n AI agents via webhook communication.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Version](https://img.shields.io/badge/version-0.1.0-green.svg)
