@@ -32,6 +32,11 @@ pytest-cov==4.1.0
 httpx==0.25.2
 faker==20.1.0
 
+# Security Testing
+bandit==1.7.5
+safety==2.3.5
+pytest-security==0.1.0
+
 # Code Quality
 ruff==0.1.7
 mypy==1.7.1

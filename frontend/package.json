@@ -9,10 +9,14 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
+    "lint:security": "eslint . --ext .ts,.tsx,.js,.jsx --config .eslintrc.security.json",
     "type-check": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:security": "jest --testPathPattern=security",
+    "test:e2e": "playwright test",
+    "audit:deps": "npm audit --audit-level moderate"
   },
   "dependencies": {
     "next": "^14.0.4",
@@ -62,6 +66,7 @@
     "eslint-config-next": "^14.0.4",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-security": "^1.7.1",
     "postcss": "^8.4.32",
     "prettier": "^3.1.1",
     "prettier-plugin-tailwindcss": "^0.5.9",
@@ -71,12 +76,15 @@
     "jest-environment-jsdom": "^29.7.0",
     "@testing-library/react": "^14.1.2",
     "@testing-library/jest-dom": "^6.1.5",
-    "@testing-library/user-event": "^14.5.1"
+    "@testing-library/user-event": "^14.5.1",
+    "msw": "^2.0.11",
+    "@playwright/test": "^1.40.1"
   },
   "engines": {
     "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "pnpm": ">=8.0.0"
   },
+  "packageManager": "pnpm@8.14.1",
   "browserslist": {
     "production": [
       ">0.2%",

@@ -23,8 +23,8 @@ NECTA provides a clean, secure interface for communicating with AI agents runnin
 
 ### Prerequisites
 
-- **Node.js** 18+ and npm
-- **Python** 3.11+
+- **Node.js** 18+ and **pnpm** 8+
+- **Python** 3.11+ and **uv**
 - **n8n instance** (cloud or self-hosted)
 
 ### Installation
@@ -38,15 +38,15 @@ cd necta
 cp .env.example .env
 # Edit .env with your configuration
 
-# Frontend setup
+# Frontend setup (using pnpm)
 cd frontend
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 
-# Backend setup (in new terminal)
+# Backend setup (using uv - in new terminal)
 cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+uv sync
+uv run uvicorn app.main:app --reload
 
 # Or use Docker
 docker-compose up -d
@@ -100,20 +100,26 @@ necta/
 ### Development Commands
 
 ```bash
-# Frontend
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run lint         # Run linting
-npm run test         # Run tests
+# Frontend (using pnpm)
+pnpm run dev              # Start development server
+pnpm run build            # Build for production
+pnpm run lint             # Run linting
+pnpm run lint:security    # Security-focused linting
+pnpm run test             # Run tests
+pnpm run test:security    # Security tests
+pnpm run test:e2e         # End-to-end tests
+pnpm run type-check       # TypeScript checking
 
-# Backend
-uvicorn app.main:app --reload  # Start with auto-reload
-pytest tests/                  # Run tests
-ruff check .                   # Lint code
-mypy app/                      # Type checking
+# Backend (using uv)
+uv run uvicorn app.main:app --reload  # Start with auto-reload
+uv run pytest tests/                  # Run tests
+uv run pytest tests/security/         # Security tests
+uv run ruff check .                   # Lint code
+uv run mypy app/                      # Type checking
+uv run bandit -r app/                 # Security linting
 
 # Docker
-docker-compose up -d           # Full development environment
+docker-compose up -d                  # Full development environment
 ```
 
 ### Code Quality
@@ -121,10 +127,14 @@ docker-compose up -d           # Full development environment
 The project maintains high code quality standards:
 
 - **TypeScript** with strict mode for frontend type safety
+- **Zod validation** for runtime type checking and security
 - **Python type hints** with mypy validation
 - **ESLint + Prettier** for consistent code style
-- **Comprehensive testing** with Jest and pytest
-- **Security-focused** development practices
+- **pnpm** for faster, more efficient package management
+- **uv** for blazingly fast Python package management
+- **Comprehensive testing** with Jest, Playwright, and pytest
+- **Security-first development** with automated security testing
+- **Bandit + ESLint Security** for vulnerability detection
 
 ## n8n Integration
 
